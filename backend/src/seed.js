@@ -7,8 +7,6 @@ const Settings = require('./models/Settings');
 const logger = require('./utils/logger');
 
 const seed = async () => {
-  await connectDB();
-
   const existingAdmin = await Admin.findOne({ email: process.env.ADMIN_EMAIL.toLowerCase() });
   if (!existingAdmin) {
     await Admin.create({
@@ -36,10 +34,19 @@ const seed = async () => {
   }
 
   logger.info('Seeding complete');
-  process.exit(0);
 };
 
-seed().catch((err) => {
-  logger.error(`Seeding failed: ${err.message}`);
-  process.exit(1);
-});
+module.exports = seed;
+
+if (require.main === module) {
+  (async () => {
+    try {
+      await connectDB();
+      await seed();
+      process.exit(0);
+    } catch (err) {
+      logger.error(`Seeding failed: ${err.message}`);
+      process.exit(1);
+    }
+  })();
+}
